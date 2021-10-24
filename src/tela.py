@@ -374,6 +374,18 @@ def PDBellmanFord(t):
             return (i, m[s[0]*20 + s[1]])
 
 #================================================================================================
+treas = [((4,9),(None),(None)),((12,8),(None),(None)),((7,17),(None),(None)),((2,5),(None),(None)),((1,9),(None),(None)),((2,12),(None),(None)),((15,12),(None),(None))]
+copiatela = None
+
+def goblinMover(prevpos, pos):
+    global copiatela
+    tela.blit(copiatela, (0,0))
+    goblin = pygame.image.load("../pixels (1).png").convert_alpha()
+    tela.blit(goblin, pos)
+    time.sleep(0.5)
+    pygame.display.update()
+
+
 def recursiveClosest(actualPos, possibleNextPositions):
     minval = 999
     minpos = None
@@ -412,7 +424,7 @@ def recursiveClosest(actualPos, possibleNextPositions):
     
     possibleNextPositions.remove(minall)
     return minval + recursiveClosest(minpos,possibleNextPositions)
-    
+
 def veryNaiveTPS(treasureinf):
     global copiatela
     copiatela = tela.copy()
