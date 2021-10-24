@@ -374,6 +374,45 @@ def PDBellmanFord(t):
             return (i, m[s[0]*20 + s[1]])
 
 #================================================================================================
+def recursiveClosest(actualPos, possibleNextPositions):
+    minval = 999
+    minpos = None
+    minall = None
+    if possibleNextPositions[0][1] == None:
+        (x1, y1) = actualPos
+        i = 1
+        zerozero = PDBellmanFord((0,0))
+        while i> 0:
+            i = i+1
+            (x, y) = zerozero[0][x1*20 + y1]
+            goblinMover((x1, y1),(20*y+20, 20*x+20))
+            x1 = x
+            y1 = y
+            if (x, y) == (0, 0):
+                break
+        return  zerozero[1][actualPos[0]*20 + actualPos[1]]
+    for x  in possibleNextPositions:
+        if x[1] == None:
+            break
+        if minval > x[0][1][actualPos[0]*20 + actualPos[1]]:
+            minval = x[0][1][actualPos[0]*20 + actualPos[1]]
+            minpos = x[1]
+            minall = x
+    print(minpos)       
+    (x1, y1) = actualPos
+    i = 1
+    while i> 0:
+        i = i+1
+        (x, y) = minall[0][0][x1*20 + y1]
+        goblinMover((x1, y1),(20*y + 20, 20*x + 20))
+        x1 = x
+        y1 = y
+        if (x, y) == minpos:
+            break
+    
+    possibleNextPositions.remove(minall)
+    return minval + recursiveClosest(minpos,possibleNextPositions)
+    
 def veryNaiveTPS(treasureinf):
     global copiatela
     copiatela = tela.copy()
