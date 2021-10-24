@@ -11,31 +11,6 @@ import heapq
 import operator
 
 
-print("\nQual voce deseja que sejam as coordenadas iniciais e finais para ser encontrado um caminho em um labirinto 20x20?\n\n");
-print("Coordenadas iniciais (x, y):\n");
-x_inicio = input("x: ")
-x_inicio = int (x_inicio)
-y_inicio = input("y: ")
-y_inicio = int (y_inicio)
-# x_inicio, y_inicio= input().split(", ")
-if x_inicio<0 or x_inicio>19 or y_inicio<0 or y_inicio>19:
-    print("Entrada inválida! Mantenha os valores dentro de 0 <= x, y < 20:")
-    x_inicio = input("x: ")
-    x_inicio = int (x_inicio)
-    y_inicio = input("y: ")
-    y_inicio = int (y_inicio)
-print("Coordenadas finais (x, y):\n");
-xFim = input("x: ")
-xFim = int (xFim)
-yFim = input("y: ")
-yFim = int (yFim)
-if xFim<0 or xFim>19 or yFim<0 or yFim>19:
-    print("Entrada inválida! Mantenha os valores dentro de 0 <= x, y < 20:")
-    xFim = input("x: ")
-    xFim = int (xFim)
-    yFim = input("y: ")
-    yFim = int (yFim)
-
 
 try:
     pygame.init()
@@ -48,7 +23,7 @@ HEIGHT = 600
 FPS = 30
 
 tela = pygame.display.set_mode((WIDTH, HEIGHT))
-pygame.display.set_caption ("MazegenPRIM-PD_BellmanFordShortestPath")
+pygame.display.set_caption ("Goblin_Collector")
 
 
 # Define colours
@@ -363,7 +338,7 @@ def DCShortestPath(N, xo, yo, xd, yd, xf, yf, contr, distance=0, curCol = RED):
 
 #================================================================================================
 #Shortest Path BellmanFord
-def PDBellmanFord(s, t):
+def PDBellmanFord(t):
     m = [None] * GMAZED.number_of_nodes()
     sucessor = [None] * GMAZED.number_of_nodes()
     valch= 0
@@ -399,6 +374,19 @@ def PDBellmanFord(s, t):
             return (i, m[s[0]*20 + s[1]])
 
 #================================================================================================
+def veryNaiveTPS(treasureinf):
+    global copiatela
+    copiatela = tela.copy()
+    sucsandval=[[[[], []], None] for  i in range (100)]
+    first = PDBellmanFord((0,0))
+    i = 0
+    for x in treasureinf:
+        sucsandval[i][0] = PDBellmanFord(x[0])
+        sucsandval[i][1] = x[0]
+        i = i + 1
+
+    print(recursiveClosest((0,0), sucsandval))
+    
 
 def createMaze():
     startVertex = (0, 0)
@@ -410,21 +398,7 @@ randomEdgesWeight()
 Prim()
 addLoopsToMaze()
 printShOb()
-short = PDBellmanFord((x_inicio, y_inicio),(xFim, yFim))
 
-coordInicioX = str (x_inicio)
-coordInicioY = str (y_inicio)
-coordFimX = str (xFim)
-coordFimY = str (yFim)
-
-
-pygame.font.init() # you have to call this at the start, 
-                   # if you want to use this module.
-myfont = pygame.font.SysFont('Comic Sans MS', 22)
-
-textsurface = myfont.render('O menor caminho entre (' + coordInicioX + ', ' + coordInicioY + ') e (' + coordFimX + ', ' + coordFimY + ') passa por ' + str(short[0]) + ' Nós com peso ' + str(short[1]), 1, (255, 0, 255))
-
-tela.blit(textsurface,(2,500))
 
 sair = True
 
