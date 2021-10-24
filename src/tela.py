@@ -361,26 +361,40 @@ def PDBellmanFord(t):
             valch = 0
         else:
             break
-    
-    (x1, y1) = s
-    i = 1
-    while i> 0:
-        i = i+1
-        (x, y) = sucessor[x1*20 + y1]
-        moveCellColor((x1, y1), (x, y), RED)
-        x1 = x
-        y1 = y
-        if (x, y) == t:
-            return (i, m[s[0]*20 + s[1]])
+
+    return [sucessor, m]
 
 #================================================================================================
 treas = [((4,9),(None),(None)),((12,8),(None),(None)),((7,17),(None),(None)),((2,5),(None),(None)),((1,9),(None),(None)),((2,12),(None),(None)),((15,12),(None),(None))]
 copiatela = None
 
+def randTreasure():
+    w=0
+    wt=0
+    vt=0
+    treasures = []
+    posx = 0
+    posy = 0
+    while w<50:
+        wt = random.randint(1, 5)
+        vt = random.randint(1, 25)
+        w += wt
+        posx = random.randint(1, 19)
+        posy = random.randint(1, 19)
+        while (posx, posy) in treasures:
+            posx = random.randint(1, 19)
+            posy = random.randint(1, 19)
+
+        treasures.append(((posx, posy),(wt),(vt)))
+    return treasures
+
+
+
+
 def goblinMover(prevpos, pos):
     global copiatela
     tela.blit(copiatela, (0,0))
-    goblin = pygame.image.load("../pixels (1).png").convert_alpha()
+    goblin = pygame.image.load("../goblin.png").convert_alpha()
     tela.blit(goblin, pos)
     time.sleep(0.5)
     pygame.display.update()
@@ -449,8 +463,7 @@ randomEdgesWeight()
 Prim()
 addLoopsToMaze()
 printShOb()
-
-
+veryNaiveTPS(randTreasure())
 sair = True
 
 while sair:
