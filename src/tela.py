@@ -10,6 +10,8 @@ import heapq
 
 import operator
 
+import threading
+
 
 
 try:
@@ -369,6 +371,15 @@ def PDBellmanFord(t):
 
 #================================================================================================
 copiatela = None
+avaliableTreasures = []
+randomGenTreasures = []
+rgtSem = threading.Semaphore()
+telaSem = threading.Semaphore()
+mazeSem = threading.Semaphore()
+botTreasure = []
+botknap = []
+bot = None
+botpos = None
 
 def randTreasure():
     w=0
@@ -377,6 +388,8 @@ def randTreasure():
     treasures = []
     posx = 0
     posy = 0
+    global avaliableTreasures
+    rgtSem.acquire()
     while w<50:
         wt = random.randint(1, 5)
         vt = random.randint(1, 25)
@@ -386,11 +399,17 @@ def randTreasure():
         while (posx, posy) in treasures and len(GMAZED.nodes[(posx, posy)]['treasures'])!=0:
             posx = random.randint(1, 19)
             posy = random.randint(1, 19)
-
+        telaSem.acquire()
         pygame.draw.circle(tela, YELLOW, [20*posy +30, 20*posx +30], 5)
+        telaSem.release()
+        mazeSem.acquire()
         GMAZED.nodes[(posx, posy)]['treasures'].append([wt, vt])
+        mazeSem.release()
         treasures.append(((posx, posy),(wt),(vt)))
+        avaliableTreasures.append(((posx, posy),(wt),(vt)))
+    rgtSem.release()
     return treasures
+
 
 def PDKnapsack(treasures, weight):
     m = []
@@ -425,21 +444,31 @@ def PDKnapsack(treasures, weight):
     return treasuresonbag
 
 def goblinMover(prevpos, pos):
-    global copiatela
-    tela.blit(copiatela, (0,0))
-    goblin = pygame.image.load("../goblin.png").convert_alpha()
-    tela.blit(goblin, pos)
-    time.sleep(0.5)
-    pygame.display.update()
-
+    
+    if prevpos != pos:
+        global copiatela
+        telaSem.acquire()
+        tela.blit(copiatela, (0,0))
+        goblin = pygame.image.load("../goblin.png").convert_alpha()
+        tela.blit(goblin, pos)
+        pygame.display.update()
+        telaSem.release()
+        time.sleep(0.5)
 
 def recursiveClosest(actualPos, possibleNextPositions):
     minval = 999
     minpos = None
     minall = None
     global copiatela
+    global avaliableTreasures
+    global bot
+    global botTreasure
+    global botknap
+    global botpos
+    global randomGenTreasures
 
-    if possibleNextPositions[0][1] == None:
+    if possibleNextPositions[0][1] == None :
+        minalzeroflag = 0
         (x1, y1) = actualPos
         i = 1
         zerozero = PDBellmanFord((0,0))
@@ -453,39 +482,109 @@ def recursiveClosest(actualPos, possibleNextPositions):
                 break
         return  zerozero[1][actualPos[0]*20 + actualPos[1]]
     for x  in possibleNextPositions:
-        if x[1] == None:
+        if x[1] == None or x[1] == 0:
             break
         if minval > x[0][1][actualPos[0]*20 + actualPos[1]]:
             minval = x[0][1][actualPos[0]*20 + actualPos[1]]
             minpos = x[1]
             minall = x
-    print(minpos)       
+    print(minpos)
+    if minall == None:
+        print(botknap)
+        print(botTreasure)
+        print(randomGenTreasures)
+
     (x1, y1) = actualPos
     i = 1
     while i> 0:
+        for xt  in possibleNextPositions:
+            if xt[1] == None:
+                break
+            if (xt[1],xt[2][0],xt[2][1]) not in avaliableTreasures:
+                knp = PDKnapsack(avaliableTreasures, 20)
+                if botTreasure not in knp:
+                    botknap = knp
+                    for xt2 in botTreasure:
+                        if xt2 not in knp:
+                            botTreasure.remove(xt2)
+                            mazeSem.acquire()
+                            print(GMAZED.nodes[xt2[0]]['treasures'])
+                            GMAZED.nodes[(x1,y1)]['treasures'].append([xt2[1], xt2[2]])
+                            mazeSem.release()
+                            rgtSem.acquire()
+                            avaliableTreasures.append(((x1,y1),(xt2[1]),(xt2[2])))
+                            rgtSem.release()
+                            telaSem.acquire()
+                            tela.blit(copiatela, (0,0))
+                            pygame.draw.circle(tela, WHITE, [20*y1 +30, 20*x1 +30], 5)
+                            copiatela = tela.copy()
+                            telaSem.release()
+                    botpos = (x1, y1)
+                    bot = threading.Thread(target=veryNaiveTPS, args = (knp,))
+                    bot.start()
+                    return 'destroy'
+                
         i = i+1
+        print(minall[0][0][x1*20 + y1])
         (x, y) = minall[0][0][x1*20 + y1]
         goblinMover((x1, y1),(20*y + 20, 20*x + 20))
         x1 = x
         y1 = y
         if (x, y) == minpos:
-            
-            GMAZED.nodes[(x, y)]['treasures'].remove(minall[2])
+            if len(GMAZED.nodes[(x, y)]['treasures']) > 1:
+                print('ASDIAUSHD')
+                for xx in botknap:
+                    if xx[0] == (x, y):
+                        botTreasure.append(xx)
+                        GMAZED.nodes[(x, y)]['treasures'].remove([xx[1],xx[2]])
+                        if xx in avaliableTreasures:
+                            avaliableTreasures.remove(xx)
+                        for yy in possibleNextPositions:
+                            if xx[0] == yy[1] and yy[2] == [xx[1],xx[2]]:
+                                print("asasd")
+                                possibleNextPositions.remove(yy)
+
+                        
+
+            else:
+                mazeSem.acquire()
+                GMAZED.nodes[(x, y)]['treasures'].remove(minall[2])
+                mazeSem.release()
+                rgtSem.acquire()
+                botTreasure.append((minall[1], (minall[2][0]), (minall[2][1])))
+                if (minall[1], (minall[2][0]), (minall[2][1])) in avaliableTreasures:
+                    avaliableTreasures.remove((minall[1], (minall[2][0]), (minall[2][1])))
+                    
+                    rgtSem.release()
+                mazeSem.acquire()
+                possibleNextPositions.remove(minall)
             if len(GMAZED.nodes[(x, y)]['treasures']) == 0:
+                telaSem.acquire()
                 tela.blit(copiatela, (0,0))
                 pygame.draw.circle(tela, GREEN, [20*y +30, 20*x +30], 5)
                 copiatela = tela.copy()
-
+                telaSem.release()
+            mazeSem.release()
+            rgtSem.release()
             break
-    
-    possibleNextPositions.remove(minall)
-    return minval + recursiveClosest(minpos,possibleNextPositions)
+    destroy = recursiveClosest(minpos,possibleNextPositions)
+    if destroy == 'destroy':
+        return 'destroy'
+
+    return minval + destroy
 
 def veryNaiveTPS(treasureinf):
     global copiatela
+    global botknap
+    global botpos
+    global sair
+    botknap = treasureinf
+    telaSem.acquire()
     copiatela = tela.copy()
+    telaSem.release()
+    
+
     sucsandval=[[[[], []], None, None] for  i in range (100)]
-    first = PDBellmanFord((0,0))
     i = 0
     for x in treasureinf:
         sucsandval[i][0] = PDBellmanFord(x[0])
@@ -493,12 +592,36 @@ def veryNaiveTPS(treasureinf):
         sucsandval[i][2] = [x[1], x[2]]
         i = i + 1
 
-    print(recursiveClosest((0,0), sucsandval))
-    
+    print(recursiveClosest(botpos, sucsandval))
+    print(botTreasure)
+    print(botknap)
+    print(avaliableTreasures)
+    print(randomGenTreasures)
 
 def createMaze():
     startVertex = (0, 0)
     randomDFS(startVertex)
+
+def playerSimul():
+    global avaliableTreasures
+    global rgtSem
+    global copiatela
+
+    
+    while 1:
+        time.sleep(2)
+        rgtSem.acquire()
+        pos = avaliableTreasures.pop()
+        rgtSem.release()
+        telaSem.acquire()
+        tela.blit(copiatela, (0,0))
+        pygame.draw.circle(tela, PURPLE, [20*pos[0][1] +30, 20*pos[0][0] +30], 5)
+        copiatela = tela.copy()
+        print("NOW")
+        pygame.display.update()
+        telaSem.release()
+    
+
 
 build_grid(40, 0, 20) 
 #createMaze()
@@ -506,7 +629,16 @@ randomEdgesWeight()
 Prim()
 addLoopsToMaze()
 printShOb()
-veryNaiveTPS(PDKnapsack(randTreasure(), 20))
+randomGenTreasures = randTreasure()
+knp = (PDKnapsack(randomGenTreasures, 20))
+botpos = (0, 0)
+bot = threading.Thread(target=veryNaiveTPS, args = (knp,))
+player = threading.Thread(target=playerSimul,)
+bot.start()
+#player.start()
+bot.join()
+#player.join()
+
 
 sair = True
 
