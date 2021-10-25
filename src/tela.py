@@ -461,7 +461,6 @@ def goblinMover(prevpos, pos):#function used to move the goblin sprite
         elif GMAZED.edges[prevpos, ((pos[1]-20)/20, (pos[0]-20)/20)]['weight'] < 1:
             goblinBoost += GMAZED.edges[prevpos, ((pos[1]-20)/20, (pos[0]-20)/20)]['weight']
         
-        print(goblinBoost)
         if goblinBoost > 0:
             time.sleep(1.5)
             goblinBoost -= 1
@@ -507,7 +506,6 @@ def recursiveClosest(actualPos, possibleNextPositions):#function were the closes
             minval = x[0][1][actualPos[0]*20 + actualPos[1]]
             minpos = x[1]
             minall = x
-    print(minpos)
     if minall == None:
         print(botknap)
         print(botTreasure)
@@ -527,7 +525,6 @@ def recursiveClosest(actualPos, possibleNextPositions):#function were the closes
                         if xt2 not in knp:# if there are itens that are not needed on the new botknap they are discarded on the location, and made avaliable
                             botTreasure.remove(xt2)
                             mazeSem.acquire()
-                            print(GMAZED.nodes[xt2[0]]['treasures'])
                             GMAZED.nodes[(x1,y1)]['treasures'].append([xt2[1], xt2[2]])
                             mazeSem.release()
                             rgtSem.acquire()
@@ -544,14 +541,12 @@ def recursiveClosest(actualPos, possibleNextPositions):#function were the closes
                     return 'destroy' #destroy the thread
                 
         i = i+1
-        print(minall[0][0][x1*20 + y1])
         (x, y) = minall[0][0][x1*20 + y1]
         goblinMover((x1, y1),(20*y + 20, 20*x + 20)) #moves the goblin one block
         x1 = x
         y1 = y
         if (x, y) == minpos:
             if len(GMAZED.nodes[(x, y)]['treasures']) > 1: #in case there are more than one wanted treasures on the same block
-                print('ASDIAUSHD')
                 for xx in botknap:
                     if xx[0] == (x, y):
                         botTreasure.append(xx)
@@ -560,7 +555,6 @@ def recursiveClosest(actualPos, possibleNextPositions):#function were the closes
                             avaliableTreasures.remove(xx)
                         for yy in possibleNextPositions:
                             if xx[0] == yy[1] and yy[2] == [xx[1],xx[2]]:
-                                print("asasd")
                                 possibleNextPositions.remove(yy)
 
                         
@@ -613,9 +607,6 @@ def veryNaiveTPS(treasureinf):# Naive tsp, we collect the weighted distance betw
 
     print(recursiveClosest(botpos, sucsandval))
     print(botTreasure)
-    print(botknap)
-    print(avaliableTreasures)
-    print(randomGenTreasures)
 
 def createMaze():
     startVertex = (0, 0)
@@ -636,7 +627,6 @@ def playerSimul():#suposed to simulate player interaction with the maze(collecti
         tela.blit(copiatela, (0,0))
         pygame.draw.circle(tela, PURPLE, [20*pos[0][1] +30, 20*pos[0][0] +30], 5)
         copiatela = tela.copy()
-        print("NOW")
         pygame.display.update()
         telaSem.release()
     
