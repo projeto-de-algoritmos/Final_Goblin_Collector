@@ -12,6 +12,8 @@ import operator
 
 import threading
 
+from pygame.constants import KEYDOWN
+
 
 
 try:
@@ -24,7 +26,7 @@ WIDTH = 550
 HEIGHT = 600
 FPS = 30
 
-tela = pygame.display.set_mode((WIDTH, HEIGHT))
+telaInicial = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption ("Goblin_Collector")
 
 
@@ -39,6 +41,69 @@ YELLOW = (255,255,0)
 
 w=20
 
+sair = True
+sizeBag = 0
+
+while sair:
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            sair = False
+
+    
+    pygame.draw.rect(telaInicial, BLACK, (200, 500, 70, 50), 0)
+
+    pygame.font.init() # you have to call this at the start, 
+                    # if you want to use this module.
+    myfont1 = pygame.font.SysFont('Arial', 22)
+    outraFont = pygame.font.SysFont('Arial', 30)
+
+    textoInicial = myfont1.render('Escolha o peso máximo da mochilha do coletor.', 1, WHITE)
+    mais = outraFont.render('+', 1, WHITE)
+    menos = outraFont.render('-', 1, WHITE)
+    bag = pygame.image.load("../bag.png")
+    smallBag = pygame.image.load("../smallBag.png") 
+    bigBag = pygame.image.load("../bigBag.png") 
+
+    tamanhoPequeno = myfont1.render('10 kg', 1, WHITE)
+    tamanhoMedio = myfont1.render('30 kg', 1, WHITE)
+    tamanhoGrande = myfont1.render('50 kg', 1, WHITE)
+    coletar = myfont1.render('Coletar', 1, WHITE)
+
+    telaInicial.blit(smallBag,(70,234))
+    telaInicial.blit(tamanhoPequeno,(85,335))
+    telaInicial.blit(bag,(190,200))
+    telaInicial.blit(tamanhoMedio,(230,380))
+    telaInicial.blit(bigBag,(360,166))
+    telaInicial.blit(tamanhoGrande,(430,405))
+    telaInicial.blit(textoInicial,(50,40))
+    telaInicial.blit(coletar,(410,510))
+
+    mousePos = pygame.mouse.get_pos()
+
+    if(mousePos[0] > 65 and mousePos[0] < 150 and mousePos[1] > 230 and mousePos[1] < 335 and pygame.mouse.get_pressed() == (1,0,0)):
+        sizeBag = 10
+        pygame.draw.rect(telaInicial, RED, (65, 230, 85, 100), 0) # 10 kg - fundo vermelho
+        pygame.draw.rect(telaInicial, BLACK, (185, 195, 135, 175), 0) # 30 kg - fundo preto
+        pygame.draw.rect(telaInicial, BLACK, (355, 160, 195, 245), 0) # 50 kg - fundo preto
+
+    if(mousePos[0] > 185 and mousePos[0] < 320 and mousePos[1] > 195 and mousePos[1] < 370 and pygame.mouse.get_pressed() == (1,0,0)):
+        sizeBag = 30
+        pygame.draw.rect(telaInicial, BLACK, (65, 230, 85, 100), 0) # 10 kg - fundo preto
+        pygame.draw.rect(telaInicial, RED, (185, 195, 135, 175), 0) # 30 kg - fundo vermelho
+        pygame.draw.rect(telaInicial, BLACK, (355, 160, 195, 245), 0) # 50 kg - fundo preto
+
+    if(mousePos[0] > 355 and mousePos[0] < 530 and mousePos[1] > 160 and mousePos[1] < 405 and pygame.mouse.get_pressed() == (1,0,0)):
+        sizeBag = 50
+        pygame.draw.rect(telaInicial, BLACK, (65, 230, 85, 100), 0) # 10 kg - fundo preto
+        pygame.draw.rect(telaInicial, BLACK, (185, 195, 135, 175), 0) # 30 kg - fundo preto
+        pygame.draw.rect(telaInicial, RED, (355, 160, 195, 245), 0) # 50 kg - fundo vermelho
+
+    if(mousePos[0] > 400 and mousePos[0] < 470 and mousePos[1] > 500 and mousePos[1] < 550 and pygame.mouse.get_pressed() == (1,0,0)):
+        sair = False
+    pygame.display.update()
+
+
+tela = pygame.display.set_mode((WIDTH, HEIGHT))
 # build the grid
 def build_grid(x, y, w):
     x = 0
@@ -639,7 +704,7 @@ Prim()
 addLoopsToMaze()
 printShOb()
 randomGenTreasures = randTreasure()
-knp = (PDKnapsack(randomGenTreasures, 20))
+knp = (PDKnapsack(randomGenTreasures, sizeBag))
 botpos = (0, 0)
 bot = threading.Thread(target=veryNaiveTPS, args = (knp,))
 player = threading.Thread(target=playerSimul,)
@@ -649,12 +714,28 @@ bot.join()
 #player.join()
 
 
-sair = True
 
 while sair:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             sair = False
+    
+    pygame.draw.rect(tela, BLACK, (200, 500, 70, 50), 0)
+    
+
+    pygame.font.init() # you have to call this at the start, 
+                    # if you want to use this module.
+    myfont = pygame.font.SysFont('Arial', 22)
+
+    sair = myfont.render('Sair', 1, WHITE)
+
+    tela.blit(sair,(210,510))
+
+    mousePos = pygame.mouse.get_pos()
+    #mouse = pygame.mouse.get()
+
+    if(mousePos[0] > 200 and mousePos[0] < 270 and mousePos[1] > 500 and mousePos[1] < 550 and pygame.mouse.get_pressed() == (1,0,0)):
+        sair = False
     pygame.display.update()
 
 pygame.quit()
