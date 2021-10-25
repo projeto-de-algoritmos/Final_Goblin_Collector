@@ -127,6 +127,9 @@ for (x, y) in GMAZE.edges():
     GMAZED.edges[x, y]['weight'] = 0
     GMAZED.edges[y, x]['weight'] = 0
 
+for x in GMAZED.nodes():
+    GMAZED.nodes[x]['treasures'] = []
+
 def randUnvisitedNeighbor(vertex):
     unvNeigh = []
     neigh = G[vertex]
@@ -384,6 +387,8 @@ def randTreasure():
             posx = random.randint(1, 19)
             posy = random.randint(1, 19)
 
+        pygame.draw.circle(tela, YELLOW, [20*posy +30, 20*posx +30], 5)
+        GMAZED.nodes[(posx, posy)]['treasures'].append([wt, vt])
         treasures.append(((posx, posy),(wt),(vt)))
     return treasures
 
@@ -419,9 +424,6 @@ def PDKnapsack(treasures, weight):
     
     return treasuresonbag
 
-
-
-
 def goblinMover(prevpos, pos):
     global copiatela
     tela.blit(copiatela, (0,0))
@@ -435,6 +437,8 @@ def recursiveClosest(actualPos, possibleNextPositions):
     minval = 999
     minpos = None
     minall = None
+    global copiatela
+
     if possibleNextPositions[0][1] == None:
         (x1, y1) = actualPos
         i = 1
@@ -465,6 +469,9 @@ def recursiveClosest(actualPos, possibleNextPositions):
         x1 = x
         y1 = y
         if (x, y) == minpos:
+            tela.blit(copiatela, (0,0))
+            pygame.draw.circle(tela, GREEN, [20*y +30, 20*x +30], 5)
+            copiatela = tela.copy()
             break
     
     possibleNextPositions.remove(minall)
