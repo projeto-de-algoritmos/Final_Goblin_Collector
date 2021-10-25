@@ -11,7 +11,7 @@
 | 16/0152615  |  João Pedro Elias Moura |
 
 ## Sobre 
-O Goblin_Collector é um software que mistura elementos de grafos e programação dinamica, que ajuda um golbin a pegar os melhores tesouros para encher sua bolsa e encontra um caminho razoavel para coleta-los em um labirinto 20x20 gerado usando o algoritimo de Prim para gerar uma MST. Utilizamos uma evolução do projeto de Programação dinamica para este para o desenvolvimento deste. 
+O Goblin_Collector é um software que mistura elementos de grafos e programação dinamica para tentar resolver um problema de TSP, que é ajudar um goblin a pegar os melhores tesouros para encher sua bolsa e encontra um caminho razoavel para coleta-los em um labirinto 20x20 gerado usando o algoritimo de Prim. Utilizamos uma evolução do projeto de Programação dinamica para este para o desenvolvimento deste. 
 
 ## Screenshoots
 ![Screenshot from 2021-10-25 08-02-18](https://user-images.githubusercontent.com/42779015/138686188-1eaf461a-2903-40bc-8509-cd5e3d5427a7.png)
