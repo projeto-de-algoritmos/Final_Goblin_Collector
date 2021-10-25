@@ -60,9 +60,9 @@ while sair:
     textoInicial = myfont1.render('Escolha o peso máximo da mochilha do coletor.', 1, WHITE)
     mais = outraFont.render('+', 1, WHITE)
     menos = outraFont.render('-', 1, WHITE)
-    bag = pygame.image.load("../bag.png")
-    smallBag = pygame.image.load("../smallBag.png") 
-    bigBag = pygame.image.load("../bigBag.png") 
+    bag = pygame.image.load("../images/bag.png")
+    smallBag = pygame.image.load("../images/smallBag.png") 
+    bigBag = pygame.image.load("../images/bigBag.png") 
 
     tamanhoPequeno = myfont1.render('10 kg', 1, WHITE)
     tamanhoMedio = myfont1.render('30 kg', 1, WHITE)
@@ -517,7 +517,7 @@ def goblinMover(prevpos, pos):#function used to move the goblin sprite
         global copiatela
         telaSem.acquire()
         tela.blit(copiatela, (0,0))#this is done because we dont want tracks
-        goblin = pygame.image.load("../goblin.png").convert_alpha()
+        goblin = pygame.image.load("../images/goblin.png").convert_alpha()
         tela.blit(goblin, pos)
         pygame.display.update()
         telaSem.release()
