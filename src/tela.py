@@ -60,9 +60,9 @@ while sair:
     textoInicial = myfont1.render('Escolha o peso máximo da mochilha do coletor.', 1, WHITE)
     mais = outraFont.render('+', 1, WHITE)
     menos = outraFont.render('-', 1, WHITE)
-    bag = pygame.image.load("../images/bag.png")
-    smallBag = pygame.image.load("../images/smallBag.png") 
-    bigBag = pygame.image.load("../images/bigBag.png") 
+    bag = pygame.image.load("../bag.png")
+    smallBag = pygame.image.load("../smallBag.png") 
+    bigBag = pygame.image.load("../bigBag.png") 
 
     tamanhoPequeno = myfont1.render('10 kg', 1, WHITE)
     tamanhoMedio = myfont1.render('30 kg', 1, WHITE)
@@ -517,7 +517,7 @@ def goblinMover(prevpos, pos):#function used to move the goblin sprite
         global copiatela
         telaSem.acquire()
         tela.blit(copiatela, (0,0))#this is done because we dont want tracks
-        goblin = pygame.image.load("../images/goblin.png").convert_alpha()
+        goblin = pygame.image.load("../goblin.png").convert_alpha()
         tela.blit(goblin, pos)
         pygame.display.update()
         telaSem.release()
@@ -713,28 +713,50 @@ bot.start()
 bot.join()
 #player.join()
 
+sair = True
+valorTotal = 0
 
+for n in botTreasure:
+    valorTotal += n[2]
+
+telaFinal = pygame.display.set_mode((WIDTH, HEIGHT))
 
 while sair:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             sair = False
-    
-    pygame.draw.rect(tela, BLACK, (200, 500, 70, 50), 0)
-    
 
     pygame.font.init() # you have to call this at the start, 
                     # if you want to use this module.
+    goldFont = pygame.font.SysFont('Arial', 30)
+    
+    gold = pygame.image.load("../treasures.png") 
+
+    imageGold = goldFont.render('10 kg', 1, WHITE)
+
+    telaInicial.blit(gold,(180, 100))
+    
+    pygame.draw.rect(telaFinal, BLACK, (245, 500, 70, 50), 0)
+    
     myfont = pygame.font.SysFont('Arial', 22)
+    myfont1 = pygame.font.SysFont('Arial', 16)
+
+    sizeBag = str (sizeBag)
+
+    valorTotal = str (valorTotal)
+
+    textoFinal = myfont1.render('O Goblin conseguiu o valor total de ' + valorTotal + ' com a mochila de ' + sizeBag + ' kg.', 0, WHITE)
+
+    telaFinal.blit(textoFinal,(70,320))
 
     sair = myfont.render('Sair', 1, WHITE)
 
-    tela.blit(sair,(210,510))
+    telaFinal.blit(sair,(250,510))
 
     mousePos = pygame.mouse.get_pos()
     #mouse = pygame.mouse.get()
 
-    if(mousePos[0] > 200 and mousePos[0] < 270 and mousePos[1] > 500 and mousePos[1] < 550 and pygame.mouse.get_pressed() == (1,0,0)):
+    if(mousePos[0] > 245 and mousePos[0] < 300 and mousePos[1] > 500 and mousePos[1] < 550 and pygame.mouse.get_pressed() == (1,0,0)):
         sair = False
     pygame.display.update()
 
