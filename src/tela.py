@@ -747,7 +747,7 @@ while sair:
 
     textoFinal = myfont1.render('O Goblin conseguiu o valor total de ' + valorTotal + ' com a mochila de ' + sizeBag + ' kg.', 0, WHITE)
 
-    telaFinal.blit(textoFinal,(70,320))
+    telaFinal.blit(textoFinal,(60,320))
 
     sair = myfont.render('Sair', 1, WHITE)
 
