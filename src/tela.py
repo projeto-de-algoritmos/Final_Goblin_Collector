@@ -370,18 +370,18 @@ def PDBellmanFord(t):
     return [sucessor, m]
 
 #================================================================================================
-copiatela = None
-avaliableTreasures = []
-randomGenTreasures = []
-rgtSem = threading.Semaphore()
+copiatela = None #screen copy to avoid tracks from the image
+avaliableTreasures = [] #list with the treasures avaliable for picking ((pos),(w),(v))
+randomGenTreasures = [] #list with the random treasures
+rgtSem = threading.Semaphore() #semaphores to avoid colision on threads
 telaSem = threading.Semaphore()
 mazeSem = threading.Semaphore()
-botTreasure = []
-botknap = []
+botTreasure = [] #treasure on the possession of the bot
+botknap = [] #treasures expected to be colected
 bot = None
 botpos = None
 
-def randTreasure():
+def randTreasure(): #generate random treasures
     w=0
     wt=0
     vt=0
@@ -390,32 +390,32 @@ def randTreasure():
     posy = 0
     global avaliableTreasures
     rgtSem.acquire()
-    while w<50:
+    while w<50:#maximum total weight of the treasures
         wt = random.randint(1, 5)
         vt = random.randint(1, 25)
         w += wt
         posx = random.randint(1, 19)
         posy = random.randint(1, 19)
-        while (posx, posy) in treasures and len(GMAZED.nodes[(posx, posy)]['treasures'])!=0:
+        while (posx, posy) in treasures and len(GMAZED.nodes[(posx, posy)]['treasures'])!=0: #supesed to pick a diferent coordinate per treasure
             posx = random.randint(1, 19)
             posy = random.randint(1, 19)
         telaSem.acquire()
-        pygame.draw.circle(tela, YELLOW, [20*posy +30, 20*posx +30], 5)
+        pygame.draw.circle(tela, YELLOW, [20*posy +30, 20*posx +30], 5) #drawn the circle representing the treasure on the maze
         telaSem.release()
         mazeSem.acquire()
-        GMAZED.nodes[(posx, posy)]['treasures'].append([wt, vt])
+        GMAZED.nodes[(posx, posy)]['treasures'].append([wt, vt]) #put the treasure on the maze properties on the formar [w, v](its actually a list [[w,v], ...])
         mazeSem.release()
-        treasures.append(((posx, posy),(wt),(vt)))
-        avaliableTreasures.append(((posx, posy),(wt),(vt)))
+        treasures.append(((posx, posy),(wt),(vt))) 
+        avaliableTreasures.append(((posx, posy),(wt),(vt))) #mark treasure as avaliable
     rgtSem.release()
-    return treasures
+    return treasures #return the list with the treasures [((pos),(w),(v)),((pos),(w),(v)), ...]
 
 
-def PDKnapsack(treasures, weight):
+def PDKnapsack(treasures, weight):#knapsack function that returns a list of treasures [((pos),(w),(v)),((pos),(w),(v)), ...]
     m = []
     treasuresonbag = []
 
-    for n in range (0, len(treasures)+1):
+    for n in range (0, len(treasures)+1):#initialized this way because weird bug
         m.append([])
         for w in range (0, weight+1):
             m[n].append(0)
@@ -427,7 +427,7 @@ def PDKnapsack(treasures, weight):
             else:
                 m[i][w] = max(m[i-1][w], treasures[i-1][2] + m[i-1][w - treasures[i-1][1]])
         
-    tot = m[len(treasures)][weight]
+    tot = m[len(treasures)][weight] #algorithm to get the itens selected ref:https://www.geeksforgeeks.org/printing-items-01-knapsack/
     w = weight
     for i in range(len(treasures), 0, -1):
         if tot == 0:
@@ -443,19 +443,20 @@ def PDKnapsack(treasures, weight):
     
     return treasuresonbag
 
-def goblinMover(prevpos, pos):
+def goblinMover(prevpos, pos):#function used to move the goblin sprite
     
     if prevpos != pos:
         global copiatela
         telaSem.acquire()
-        tela.blit(copiatela, (0,0))
+        tela.blit(copiatela, (0,0))#this is done because we dont want tracks
         goblin = pygame.image.load("../goblin.png").convert_alpha()
         tela.blit(goblin, pos)
         pygame.display.update()
         telaSem.release()
         time.sleep(0.5)
 
-def recursiveClosest(actualPos, possibleNextPositions):
+#this is actually a very naive version of the Traveling Salesman Problem, where we seek the shortest route from start to finish through certain point
+def recursiveClosest(actualPos, possibleNextPositions):#function were the closest treasure on botknap is found then picked by the goblin who moves on the maze
     minval = 999
     minpos = None
     minall = None
@@ -467,7 +468,7 @@ def recursiveClosest(actualPos, possibleNextPositions):
     global botpos
     global randomGenTreasures
 
-    if possibleNextPositions[0][1] == None :
+    if possibleNextPositions[0][1] == None :#in case there are no more possible next positions(based on botknap) it moves the goblin to the start/exit
         minalzeroflag = 0
         (x1, y1) = actualPos
         i = 1
@@ -481,7 +482,7 @@ def recursiveClosest(actualPos, possibleNextPositions):
             if (x, y) == (0, 0):
                 break
         return  zerozero[1][actualPos[0]*20 + actualPos[1]]
-    for x  in possibleNextPositions:
+    for x  in possibleNextPositions:#finds the closest item
         if x[1] == None or x[1] == 0:
             break
         if minval > x[0][1][actualPos[0]*20 + actualPos[1]]:
@@ -496,16 +497,16 @@ def recursiveClosest(actualPos, possibleNextPositions):
 
     (x1, y1) = actualPos
     i = 1
-    while i> 0:
-        for xt  in possibleNextPositions:
+    while i> 0:#where the goblin is moved through the sucessor matrix obtained with bellmanford
+        for xt  in possibleNextPositions: # in case of multiple threads. this exists to detect if a item on the botknap was collected, if so, it creates a new thread and kills the other
             if xt[1] == None:
                 break
-            if (xt[1],xt[2][0],xt[2][1]) not in avaliableTreasures:
+            if (xt[1],xt[2][0],xt[2][1]) not in avaliableTreasures:#check if the item wanted exists on avaliableTreasure if not it will check if there are itens in bottreasure that do not exist on the new botknap(expected itens)
                 knp = PDKnapsack(avaliableTreasures, 20)
                 if botTreasure not in knp:
                     botknap = knp
                     for xt2 in botTreasure:
-                        if xt2 not in knp:
+                        if xt2 not in knp:# if there are itens that are not needed on the new botknap they are discarded on the location, and made avaliable
                             botTreasure.remove(xt2)
                             mazeSem.acquire()
                             print(GMAZED.nodes[xt2[0]]['treasures'])
@@ -516,22 +517,22 @@ def recursiveClosest(actualPos, possibleNextPositions):
                             rgtSem.release()
                             telaSem.acquire()
                             tela.blit(copiatela, (0,0))
-                            pygame.draw.circle(tela, WHITE, [20*y1 +30, 20*x1 +30], 5)
+                            pygame.draw.circle(tela, WHITE, [20*y1 +30, 20*x1 +30], 5)#treasures deposited on the white mark
                             copiatela = tela.copy()
                             telaSem.release()
-                    botpos = (x1, y1)
-                    bot = threading.Thread(target=veryNaiveTPS, args = (knp,))
+                    botpos = (x1, y1)#this is needed to remember the current position on the maze so that the new thread starts there
+                    bot = threading.Thread(target=veryNaiveTPS, args = (knp,)) #then a new thread is created to guide the goblin towards the new treasures
                     bot.start()
-                    return 'destroy'
+                    return 'destroy' #destroy the thread
                 
         i = i+1
         print(minall[0][0][x1*20 + y1])
         (x, y) = minall[0][0][x1*20 + y1]
-        goblinMover((x1, y1),(20*y + 20, 20*x + 20))
+        goblinMover((x1, y1),(20*y + 20, 20*x + 20)) #moves the goblin one block
         x1 = x
         y1 = y
         if (x, y) == minpos:
-            if len(GMAZED.nodes[(x, y)]['treasures']) > 1:
+            if len(GMAZED.nodes[(x, y)]['treasures']) > 1: #in case there are more than one wanted treasures on the same block
                 print('ASDIAUSHD')
                 for xx in botknap:
                     if xx[0] == (x, y):
@@ -546,7 +547,7 @@ def recursiveClosest(actualPos, possibleNextPositions):
 
                         
 
-            else:
+            else:#if theres only one treasure on the block
                 mazeSem.acquire()
                 GMAZED.nodes[(x, y)]['treasures'].remove(minall[2])
                 mazeSem.release()
@@ -558,7 +559,7 @@ def recursiveClosest(actualPos, possibleNextPositions):
                     rgtSem.release()
                 mazeSem.acquire()
                 possibleNextPositions.remove(minall)
-            if len(GMAZED.nodes[(x, y)]['treasures']) == 0:
+            if len(GMAZED.nodes[(x, y)]['treasures']) == 0:#if there are no more treasures on the block the gold is deleted from the maze
                 telaSem.acquire()
                 tela.blit(copiatela, (0,0))
                 pygame.draw.circle(tela, GREEN, [20*y +30, 20*x +30], 5)
@@ -567,13 +568,13 @@ def recursiveClosest(actualPos, possibleNextPositions):
             mazeSem.release()
             rgtSem.release()
             break
-    destroy = recursiveClosest(minpos,possibleNextPositions)
+    destroy = recursiveClosest(minpos,possibleNextPositions) #if the return is destroy, it will keep returning destroy until it ends
     if destroy == 'destroy':
         return 'destroy'
 
-    return minval + destroy
+    return minval + destroy #this return is actually the weigthed distance
 
-def veryNaiveTPS(treasureinf):
+def veryNaiveTPS(treasureinf):# Naive tsp, we collect the weighted distance between the goblin and the treasures and use that information to move to the closest one
     global copiatela
     global botknap
     global botpos
@@ -586,7 +587,7 @@ def veryNaiveTPS(treasureinf):
 
     sucsandval=[[[[], []], None, None] for  i in range (100)]
     i = 0
-    for x in treasureinf:
+    for x in treasureinf:#here the distance between treasures and the start/exit and the distance between treasures is calculated
         sucsandval[i][0] = PDBellmanFord(x[0])
         sucsandval[i][1] = x[0]
         sucsandval[i][2] = [x[1], x[2]]
@@ -602,7 +603,7 @@ def createMaze():
     startVertex = (0, 0)
     randomDFS(startVertex)
 
-def playerSimul():
+def playerSimul():#suposed to simulate player interaction with the maze(collecting itens)
     global avaliableTreasures
     global rgtSem
     global copiatela
