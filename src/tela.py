@@ -381,6 +381,7 @@ botTreasure = [] #treasure on the possession of the bot
 botknap = [] #treasures expected to be colected
 bot = None
 botpos = None
+goblinBoost = 0
 
 def randTreasure(): #generate random treasures
     w=0
@@ -445,7 +446,8 @@ def PDKnapsack(treasures, weight):#knapsack function that returns a list of trea
     return treasuresonbag
 
 def goblinMover(prevpos, pos):#function used to move the goblin sprite
-    
+    global goblinBoost
+
     if prevpos != pos:
         global copiatela
         telaSem.acquire()
@@ -454,7 +456,22 @@ def goblinMover(prevpos, pos):#function used to move the goblin sprite
         tela.blit(goblin, pos)
         pygame.display.update()
         telaSem.release()
-        time.sleep(0.5)
+        if GMAZED.edges[prevpos, ((pos[1]-20)/20, (pos[0]-20)/20)]['weight'] > 1:
+            goblinBoost += GMAZED.edges[prevpos, ((pos[1]-20)/20, (pos[0]-20)/20)]['weight']
+        elif GMAZED.edges[prevpos, ((pos[1]-20)/20, (pos[0]-20)/20)]['weight'] < 1:
+            goblinBoost += GMAZED.edges[prevpos, ((pos[1]-20)/20, (pos[0]-20)/20)]['weight']
+        
+        print(goblinBoost)
+        if goblinBoost > 0:
+            time.sleep(1.5)
+            goblinBoost -= 1
+        if goblinBoost == 0:
+            time.sleep(0.5)
+        if goblinBoost < 0:
+            goblinBoost += 1
+            time.sleep(0.1)
+        
+        
 
 #this is actually a very naive version of the Traveling Salesman Problem, where we seek the shortest route from start to finish through certain point
 def recursiveClosest(actualPos, possibleNextPositions):#function were the closest treasure on botknap is found then picked by the goblin who moves on the maze
