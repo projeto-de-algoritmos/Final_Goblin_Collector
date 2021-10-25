@@ -370,6 +370,7 @@ def PDBellmanFord(t):
     return [sucessor, m]
 
 #================================================================================================
+#GOBLIN COLLECTOR BOT
 copiatela = None #screen copy to avoid tracks from the image
 avaliableTreasures = [] #list with the treasures avaliable for picking ((pos),(w),(v))
 randomGenTreasures = [] #list with the random treasures
