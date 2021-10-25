@@ -365,7 +365,6 @@ def PDBellmanFord(t):
     return [sucessor, m]
 
 #================================================================================================
-treas = [((4,9),(None),(None)),((12,8),(None),(None)),((7,17),(None),(None)),((2,5),(None),(None)),((1,9),(None),(None)),((2,12),(None),(None)),((15,12),(None),(None))]
 copiatela = None
 
 def randTreasure():
@@ -387,6 +386,38 @@ def randTreasure():
 
         treasures.append(((posx, posy),(wt),(vt)))
     return treasures
+
+def PDKnapsack(treasures, weight):
+    m = []
+    treasuresonbag = []
+
+    for n in range (0, len(treasures)+1):
+        m.append([])
+        for w in range (0, weight+1):
+            m[n].append(0)
+    
+    for i in range(1, len(treasures)+1):
+        for w in range(1, weight+1):
+            if treasures[i-1][1] > w:
+                m[i][w] = m[i-1][w]
+            else:
+                m[i][w] = max(m[i-1][w], treasures[i-1][2] + m[i-1][w - treasures[i-1][1]])
+        
+    tot = m[len(treasures)][weight]
+    w = weight
+    for i in range(len(treasures), 0, -1):
+        if tot == 0:
+            break
+        
+        if tot == m[i-1][w]:
+            
+            continue
+        else:
+            treasuresonbag.append(treasures[i-1])
+            tot -= treasures[i-1][2]
+            w -= treasures[i-1][1]
+    
+    return treasuresonbag
 
 
 
@@ -463,7 +494,8 @@ randomEdgesWeight()
 Prim()
 addLoopsToMaze()
 printShOb()
-veryNaiveTPS(randTreasure())
+veryNaiveTPS(PDKnapsack(randTreasure(), 20))
+
 sair = True
 
 while sair:
