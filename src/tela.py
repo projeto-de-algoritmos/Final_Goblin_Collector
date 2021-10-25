@@ -383,7 +383,7 @@ def randTreasure():
         w += wt
         posx = random.randint(1, 19)
         posy = random.randint(1, 19)
-        while (posx, posy) in treasures:
+        while (posx, posy) in treasures and len(GMAZED.nodes[(posx, posy)]['treasures'])!=0:
             posx = random.randint(1, 19)
             posy = random.randint(1, 19)
 
@@ -469,9 +469,13 @@ def recursiveClosest(actualPos, possibleNextPositions):
         x1 = x
         y1 = y
         if (x, y) == minpos:
-            tela.blit(copiatela, (0,0))
-            pygame.draw.circle(tela, GREEN, [20*y +30, 20*x +30], 5)
-            copiatela = tela.copy()
+            
+            GMAZED.nodes[(x, y)]['treasures'].remove(minall[2])
+            if len(GMAZED.nodes[(x, y)]['treasures']) == 0:
+                tela.blit(copiatela, (0,0))
+                pygame.draw.circle(tela, GREEN, [20*y +30, 20*x +30], 5)
+                copiatela = tela.copy()
+
             break
     
     possibleNextPositions.remove(minall)
@@ -480,12 +484,13 @@ def recursiveClosest(actualPos, possibleNextPositions):
 def veryNaiveTPS(treasureinf):
     global copiatela
     copiatela = tela.copy()
-    sucsandval=[[[[], []], None] for  i in range (100)]
+    sucsandval=[[[[], []], None, None] for  i in range (100)]
     first = PDBellmanFord((0,0))
     i = 0
     for x in treasureinf:
         sucsandval[i][0] = PDBellmanFord(x[0])
         sucsandval[i][1] = x[0]
+        sucsandval[i][2] = [x[1], x[2]]
         i = i + 1
 
     print(recursiveClosest((0,0), sucsandval))
